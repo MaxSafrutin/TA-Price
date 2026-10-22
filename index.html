@@ -25,13 +25,14 @@
   </svg>
 
   <header class="topbar">
-    <div class="app-brand"><span class="app-mark">T</span><span><strong>ТИТАН АВТО</strong><small>ГЕНЕРАТОР ЦЕННИКОВ · V10</small></span></div>
-    <div class="top-actions"><button class="btn btn-dark" id="resetBtn" type="button">Очистить</button><button class="btn btn-red" id="printBtn" type="button"><svg><use href="#ic-print"/></svg>Печать / PDF</button></div>
+    <div class="app-brand"><span class="app-mark">T</span><span><strong>ТИТАН АВТО</strong><small>ГЕНЕРАТОР ЦЕННИКОВ · V11</small></span></div>
+    <nav class="workspace-tabs" aria-label="Разделы проекта"><button class="workspace-tab active" type="button" data-view="editor">Редактор</button><button class="workspace-tab" type="button" data-view="library">Сохранённые <span id="savedCount">0</span></button></nav>
+    <div class="top-actions"><button class="btn btn-red" id="saveTagBtn" type="button">Сохранить ценник</button><button class="btn btn-dark" id="resetBtn" type="button">Новый</button><button class="btn btn-dark" id="printBtn" type="button"><svg><use href="#ic-print"/></svg>Печать / PDF</button></div>
   </header>
 
-  <main class="app-shell">
+  <main class="app-shell view-panel" data-view-panel="editor">
     <aside class="editor" id="editor">
-      <div class="editor-title"><div><span>ДАННЫЕ АВТОМОБИЛЯ</span><h1>Новый ценник</h1></div><small>● Автосохранение</small></div>
+      <div class="editor-title"><div><span>ДАННЫЕ АВТОМОБИЛЯ</span><h1 id="editorHeading">Новый ценник</h1></div><small id="draftStatus">● Черновик сохранён</small></div>
 
       <section class="panel">
         <h2>Основные данные</h2>
@@ -67,7 +68,7 @@
         <h2>Дополнительные блоки</h2>
         <div class="fields">
           <div class="setting-row"><div><strong>Ключевые преимущества</strong><small>До трёх коротких пунктов</small></div><label class="switch"><input type="checkbox" data-toggle="benefits" checked><i></i></label></div>
-          <label class="field controlled" data-control="benefits"><span>Через запятую</span><input data-field="benefits" value="1 владелец, Честный пробег, Обслужен"></label>
+          <label class="field controlled" data-control="benefits"><span>Через запятую</span><textarea data-field="benefits" rows="3">1 владелец, Честный пробег, Обслужен</textarea></label>
           <div class="setting-row"><div><strong>Условия покупки</strong><small>Выберите доступные варианты</small></div><label class="switch"><input type="checkbox" data-toggle="payment" checked><i></i></label></div>
           <div class="payment-options controlled" data-control="payment"><label><input type="checkbox" data-payment="Наличные" checked>Наличные</label><label><input type="checkbox" data-payment="Кредит" checked>Кредит</label><label><input type="checkbox" data-payment="Трейд-ин" checked>Трейд-ин</label><label><input type="checkbox" data-payment="Обмен" checked>Обмен</label><label><input type="checkbox" id="customPaymentToggle">Свой вариант</label><span class="custom-slot wide-slot"><input id="customPayment" placeholder="Введите свой вариант"></span></div>
           <div class="setting-row"><div><strong>Номер позиции</strong><small>Автоматически из даты поступления</small></div><label class="switch"><input type="checkbox" data-toggle="stock" checked><i></i></label></div>
@@ -86,7 +87,7 @@
       <div class="paper-frame" id="paperFrame">
         <article class="price-card" id="priceCard">
           <div class="rule rule-one"></div><div class="rule rule-two"></div><div class="rule rule-three"></div>
-          <img class="print-logo" src="assets/TITAN_AUTO_logo_3000px_transparent.png" alt="ТИТАН АВТО — автомобили с пробегом">
+          <img class="print-logo" src="Логотип/TITAN_AUTO_logo_3000px_transparent.png" alt="ТИТАН АВТО — автомобили с пробегом">
           <div class="stock-block"><small>№ ПОЗИЦИИ</small><strong data-out="stock">08029</strong></div>
           <div class="qr-block"><div id="qrCode"></div><strong>НА АВИТО</strong></div>
           <div class="sale-badge"><svg><use href="#ic-tag"/></svg><span data-out="saleType">НА КОМИССИИ</span></div>
@@ -94,12 +95,12 @@
 
           <div class="model-block"><h2><span data-out="brand">BMW</span><span data-out="model">X3</span></h2><p data-out="trim">xDrive20i</p></div>
 
-          <div class="spec spec-1"><svg><use href="#ic-gauge"/></svg><div><strong data-out="mileage">210 000 км</strong><small>ПРОБЕГ</small></div></div>
-          <div class="spec spec-2"><svg><use href="#ic-calendar"/></svg><div><strong data-out="year">2014</strong><small>ГОД ВЫПУСКА</small></div></div>
-          <div class="spec spec-3"><svg><use href="#ic-gear"/></svg><div><strong data-out="transmission">AT</strong><small>КОРОБКА ПЕРЕДАЧ</small></div></div>
-          <div class="spec spec-4"><svg><use href="#ic-engine"/></svg><div><strong><span data-out="engine">2.0 л.</span><b> / </b><span data-out="power">184 л.с.</span></strong><small>ОБЪЁМ ДВС / МОЩНОСТЬ</small></div></div>
-          <div class="spec spec-5"><svg><use href="#ic-fuel"/></svg><div><strong data-out="fuel">БЕНЗИН</strong><small>ТИП ДВИГАТЕЛЯ</small></div></div>
-          <div class="spec spec-6"><svg><use href="#ic-drive"/></svg><div><strong data-out="drive">ПОЛНЫЙ ПРИВОД</strong><small>ПРИВОД</small></div></div>
+          <div class="spec spec-1"><img class="spec-icon" src="icons/transportation.png" alt=""><div><strong data-out="mileage">210 000 км</strong><small>ПРОБЕГ</small></div></div>
+          <div class="spec spec-2"><img class="spec-icon" src="icons/schedule.png" alt=""><div><strong data-out="year">2014</strong><small>ГОД ВЫПУСКА</small></div></div>
+          <div class="spec spec-3"><img class="spec-icon" src="icons/gearbox.png" alt=""><div><strong data-out="transmission">AT</strong><small>КОРОБКА ПЕРЕДАЧ</small></div></div>
+          <div class="spec spec-4"><img class="spec-icon" src="icons/engine.png" alt=""><div><strong><span data-out="engine">2.0 л.</span><b> / </b><span data-out="power">184 л.с.</span></strong><small>ОБЪЁМ ДВС / МОЩНОСТЬ</small></div></div>
+          <div class="spec spec-5"><img class="spec-icon" src="icons/fuel-pump.png" alt=""><div><strong data-out="fuel">БЕНЗИН</strong><small>ТИП ДВИГАТЕЛЯ</small></div></div>
+          <div class="spec spec-6"><img class="spec-icon" src="icons/4wd.png" alt=""><div><strong data-out="drive">ПОЛНЫЙ ПРИВОД</strong><small>ПРИВОД</small></div></div>
 
           <div class="benefits-block" id="benefitsOut"></div>
           <div class="payment-block" data-out="payment">Наличные • Кредит • Трейд-ин • Обмен</div>
@@ -117,6 +118,17 @@
       <p class="print-note">A4 · масштаб 100% · поля «Нет» · фоновая графика включена</p>
     </section>
   </main>
+
+  <section class="library-view view-panel" data-view-panel="library" hidden>
+    <div class="library-shell">
+      <header class="library-head"><div><span>ЛОКАЛЬНАЯ БАЗА</span><h1>Сохранённые ценники</h1><p>Открывайте ценники для изменения или создавайте копии. Данные остаются в этом браузере.</p></div><div class="library-tools"><button class="btn btn-red" id="newTagBtn" type="button">+ Новый ценник</button><button class="btn btn-light" id="exportTagsBtn" type="button">Экспорт JSON</button><button class="btn btn-light" id="importTagsBtn" type="button">Импорт JSON</button><input id="importTagsInput" type="file" accept="application/json,.json" hidden></div></header>
+      <div class="library-note"><strong>Файл для корня проекта:</strong> экспорт создаёт <code>price-tags.json</code>. Его можно положить рядом с <code>index.html</code> как резервную копию.</div>
+      <label class="field library-search"><span>Поиск по ценникам</span><input id="savedSearch" type="search" placeholder="Марка, модель или другие данные ценника" autocomplete="off"></label>
+      <div class="saved-empty" id="savedEmpty"><strong>Сохранённых ценников пока нет</strong><span>Заполните ценник в редакторе и нажмите «Сохранить ценник».</span></div>
+      <div class="saved-empty" id="savedSearchEmpty" hidden><strong>Ценники не найдены</strong><span>Измените или очистите запрос.</span></div>
+      <div class="saved-grid" id="savedGrid"></div>
+    </div>
+  </section>
 
   <dialog id="managerDialog"><form method="dialog" class="dialog-card"><div class="dialog-head"><div><span>НАСТРОЙКИ</span><h2>Контакты менеджеров</h2></div><button value="close" aria-label="Закрыть">×</button></div><div id="managerList" class="manager-list"></div><button class="add-manager" id="addManagerBtn" type="button">+ Добавить менеджера</button><div class="dialog-actions"><button value="close">Отмена</button><button class="btn-red" id="saveManagersBtn" value="default">Сохранить</button></div></form></dialog>
 
