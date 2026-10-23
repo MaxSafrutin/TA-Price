@@ -3,12 +3,23 @@
     fields: {brand:'BMW',model:'X3',trim:'xDrive20i',year:'2014',mileage:'210000',transmission:'AT',fuel:'БЕНЗИН',engine:'2.0',power:'184',drive:'ПОЛНЫЙ ПРИВОД',price:'1830000',salePrice:'1750000',saleType:'НА КОМИССИИ',status:'ЗАБРОНИРОВАН',benefits:'1 владелец, Честный пробег, Обслужен',arrivalDate:'2026-08-29',qrUrl:'https://www.avito.ru/'},
     toggles:{labels:true,discount:false,saleType:true,status:false,benefits:true,payment:true,stock:true,qr:true,mono:false},
     payments:['Наличные','Кредит','Трейд-ин','Обмен'],paymentCustom:'',qrImage:'',managerIndex:0,
-    managers:[{name:'Максим',phone:'+7 (927) 265-17-77'},{name:'Александр',phone:'+7 (927) 652-72-31'},{name:'Никита',phone:'+7 (937) 202-54-55'},{name:'Сергей',phone:'+7 (987) 940-46-53'},{name:'Дмитрий',phone:'+7 (927) 709-79-00'},{name:'Алексей',phone:'+7 (9)'}]
+    managers:[{name:'Максим',phone:'+7 (927) 652-22-87'},{name:'Александр',phone:'+7 (937) 232-22-70'},{name:'Никита',phone:'+7 (937) 202-54-55'},{name:'Алексей',phone:'+7 (927) 900-38-44'}]
   };
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const copy=o=>JSON.parse(JSON.stringify(o));
   const RECORDS_KEY='titan-price-tags-v1';
-  let state=load(),qrKey='',records=loadRecords(),currentRecordId=null;
+  let state=load(),qrKey='',records=loadRecords(),currentRecordId=null,managerDraft=[];
+  const MANAGERS_KEY='titan-price-managers-v1';
+  function loadManagers(){
+    try{const saved=JSON.parse(localStorage.getItem(MANAGERS_KEY));if(Array.isArray(saved)&&saved.length)return saved}catch{}
+    const oldPhones={'Максим':'+7 (927) 265-17-77','Александр':'+7 (927) 652-72-31','Алексей':'+7 (9)'};
+    return state.managers.filter(m=>!((m.name==='Сергей'&&m.phone==='+7 (987) 940-46-53')||(m.name==='Дмитрий'&&m.phone==='+7 (927) 709-79-00'))).map(m=>oldPhones[m.name]===m.phone?copy(defaults.managers.find(n=>n.name===m.name)):m);
+  }
+  const previousManager=state.managers[state.managerIndex];
+  state.managers=loadManagers();
+  if(!state.managers.length)state.managers=copy(defaults.managers);
+  state.managerIndex=Math.max(0,state.managers.findIndex(m=>m.name===previousManager?.name));
+  localStorage.setItem(MANAGERS_KEY,JSON.stringify(state.managers));
   function normalizeState(source){const s=source&&typeof source==='object'?source:{};const savedFields={...(s.fields||{})};if(!Object.prototype.hasOwnProperty.call(savedFields,'brand')){const legacy=String(savedFields.model||'').trim().split(/\s+/);savedFields.brand=legacy.shift()||defaults.fields.brand;savedFields.model=legacy.join(' ')||defaults.fields.model}return {...copy(defaults),...s,fields:{...defaults.fields,...savedFields},toggles:{...defaults.toggles,...(s.toggles||{})},payments:Array.isArray(s.payments)?s.payments:copy(defaults.payments),managers:Array.isArray(s.managers)&&s.managers.length?s.managers:copy(defaults.managers)}}
   function load(){try{return normalizeState(JSON.parse(localStorage.getItem('titan-price-tag-v3')))}catch{return copy(defaults)}}
   function save(){localStorage.setItem('titan-price-tag-v3',JSON.stringify(state))}
@@ -42,8 +53,8 @@
   function matchesSearch(record,query){const data=normalizeState(record.data),manager=recordManager(record),text=searchText([...Object.values(data.fields),...data.payments,data.paymentCustom,manager.name,manager.phone,recordStock(record),recordPrice(record)].join(' '));return query.split(' ').every(part=>text.includes(part))}
   function renderLibrary(){const grid=$('#savedGrid'),query=searchText($('#savedSearch').value),sorted=records.filter(record=>!query||matchesSearch(record,query)).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));grid.replaceChildren(...sorted.map(createSavedCard));$('#savedEmpty').hidden=records.length>0;$('#savedSearchEmpty').hidden=records.length===0||sorted.length>0;grid.hidden=sorted.length===0;$('#savedCount').textContent=records.length;updateEditorContext()}
   function saveCurrentRecord(){const now=new Date().toISOString(),existing=records.find(item=>item.id===currentRecordId),record={id:existing?.id||(crypto.randomUUID?.()||`tag-${Date.now()}-${Math.random().toString(16).slice(2)}`),createdAt:existing?.createdAt||now,updatedAt:now,data:copy(state)},next=existing?records.map(item=>item.id===record.id?record:item):[record,...records];if(!persistRecords(next))return;currentRecordId=record.id;renderLibrary();updateEditorContext();$('#saveTagBtn').textContent='Сохранено';setTimeout(updateEditorContext,900)}
-  function openRecord(id){const record=records.find(item=>item.id===id);if(!record)return;state=normalizeState(copy(record.data));currentRecordId=id;qrKey='';hydrate();updateEditorContext();switchView('editor')}
-  function startNewRecord(){state=copy(defaults);currentRecordId=null;qrKey='';hydrate();updateEditorContext();switchView('editor')}
+  function openRecord(id){const record=records.find(item=>item.id===id);if(!record)return;const managers=state.managers;state=normalizeState(copy(record.data));const selected=state.managers[state.managerIndex];state.managers=managers;state.managerIndex=Math.max(0,managers.findIndex(m=>m.name===selected?.name));currentRecordId=id;qrKey='';hydrate();updateEditorContext();switchView('editor')}
+  function startNewRecord(){const managers=state.managers;state=copy(defaults);state.managers=managers;currentRecordId=null;qrKey='';hydrate();updateEditorContext();switchView('editor')}
   function duplicateRecord(id){const source=records.find(item=>item.id===id);if(!source)return;const now=new Date().toISOString(),duplicate={id:crypto.randomUUID?.()||`tag-${Date.now()}-${Math.random().toString(16).slice(2)}`,createdAt:now,updatedAt:now,data:copy(source.data)};if(persistRecords([duplicate,...records]))renderLibrary()}
   function removeRecord(id){const record=records.find(item=>item.id===id);if(!record||!confirm(`Удалить ценник «${clean(record.data?.fields?.brand,'')} ${clean(record.data?.fields?.model,'')}»?`))return;const next=records.filter(item=>item.id!==id);if(!persistRecords(next))return;if(currentRecordId===id)currentRecordId=null;renderLibrary();updateEditorContext()}
   function exportRecords(){const payload={version:1,exportedAt:new Date().toISOString(),records};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='price-tags.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
@@ -67,10 +78,10 @@
   $('#importTagsBtn').addEventListener('click',()=>$('#importTagsInput').click());
   $('#importTagsInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)importRecords(file);e.target.value=''});
   $$('[data-view]').forEach(button=>button.addEventListener('click',()=>switchView(button.dataset.view)));
-  function editManagers(){const list=$('#managerList');list.replaceChildren(...state.managers.map((m,i)=>{const row=document.createElement('div');row.className='manager-edit';const n=document.createElement('input');n.value=m.name;const p=document.createElement('input');p.value=m.phone;const b=document.createElement('button');b.type='button';b.textContent='×';b.onclick=()=>{state.managers.splice(i,1);editManagers()};row.append(n,p,b);return row}))}
-  $('#manageBtn').addEventListener('click',()=>{editManagers();$('#managerDialog').showModal()});
-  $('#addManagerBtn').addEventListener('click',()=>{state.managers.push({name:'Новый менеджер',phone:'+7 ('});editManagers()});
-  $('#saveManagersBtn').addEventListener('click',()=>{state.managers=$$('.manager-edit').map(r=>({name:r.children[0].value.trim()||'Менеджер',phone:r.children[1].value.trim()}));if(!state.managers.length)state.managers=copy(defaults.managers);state.managerIndex=Math.min(state.managerIndex,state.managers.length-1);renderManagerSelect();renderManager();save()});
+  function editManagers(){const list=$('#managerList');list.replaceChildren(...managerDraft.map((m,i)=>{const row=document.createElement('div');row.className='manager-edit';const n=document.createElement('input');n.value=m.name;n.setAttribute('aria-label','Имя менеджера');n.addEventListener('input',()=>m.name=n.value);const p=document.createElement('input');p.value=m.phone;p.type='tel';p.setAttribute('aria-label','Телефон менеджера');p.addEventListener('input',()=>m.phone=p.value);const b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Удалить менеджера');b.onclick=()=>{managerDraft.splice(i,1);editManagers()};row.append(n,p,b);return row}))}
+  $('#manageBtn').addEventListener('click',()=>{managerDraft=copy(state.managers);editManagers();$('#managerDialog').showModal()});
+  $('#addManagerBtn').addEventListener('click',()=>{managerDraft.push({name:'Новый менеджер',phone:''});editManagers();$('#managerList').lastElementChild?.scrollIntoView({block:'nearest'})});
+  $('#saveManagersBtn').addEventListener('click',()=>{state.managers=managerDraft.map(m=>({name:m.name.trim()||'Менеджер',phone:m.phone.trim()}));if(!state.managers.length)state.managers=copy(defaults.managers);state.managerIndex=Math.min(state.managerIndex,state.managers.length-1);localStorage.setItem(MANAGERS_KEY,JSON.stringify(state.managers));renderManagerSelect();renderManager();save()});
   hydrate();
   renderLibrary();
   updateEditorContext();
